@@ -53,7 +53,7 @@ jobs:
       run: |
         cd $WORK_PATH/toolchain-mipsel
         sh dl_toolchain.sh
-        mkdir -p /opt/images/
+        mkdir -p  ${WORK_PATH}/images/
     - name: Clear And Build            # 5.清理构建树并开始构建
       run: |
         cwd=`pwd`
@@ -95,13 +95,16 @@ jobs:
         fi
         # 4. 清理构建
         sed -i "s/^CONFIG_TOOLCHAIN_DIR=.*$/CONFIG_TOOLCHAIN_DIR=${CONFIG_TOOLCHAIN_DIR}/g" .config
-        sudo cp -f .config /opt/images/
+        sudo cp -f .config  ${WORK_PATH}/images/
         sudo ./clear_tree_simple
         sudo fakeroot ./build_firmware_modify $t_item        # $t_item  是循环的子对象
-        sudo mv -f images/*.trx /opt/images/
-    - name : Upload packages
+        sudo mv -f images/*.trx  ${WORK_PATH}/images/
+     done
+        echo "FILE_NAME=$T_NAMES-$(date "+%Y%m%d")"  # 包名
+        echo "IMAGES_PATH=${WORK_PATH}/images/"      # 打包目录
+    - name : Upload Packages           # 6. 打包文件并且上传到当前主分支
       uses: actions/upload-artifact@master
-      if: always()
+      if: env.UPLOAD_FIRMWARE == 'true' && success()   # 成功才执行
       with:
-        name: Padavan-packages
-        path: /opt/images
+        name: Padavan-${{FILE_NAME}}
+        path: ${{ IMAGES_PATH }}
