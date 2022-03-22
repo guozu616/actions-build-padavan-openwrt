@@ -13,8 +13,8 @@ on:
   #     - openwrt/*                     # 监听openwrt目录下所有文件的push操作
     paths:                            # 路径
       - logs/k2.md                    # 监听logs目录下 k2.md 的push操作
-  watch:                              # 监视操作
-    types: [started]                  # 点击 star 之后
+  # watch:                              # 监视操作
+  #   types: [started]                  # 点击 star 之后
 env:
   T_NAMES: "PSG1218"        # 设备名字数组
   BASE_PATH: padavan                # 基础目录
@@ -53,7 +53,7 @@ jobs:
       run: |
         cd $WORK_PATH/toolchain-mipsel
         sh dl_toolchain.sh
-        mkdir -p  ${WORK_PATH}/images/
+        mkdir -p ${WORK_PATH}/images/
     - name: Clear And Build            # 5.清理构建树并开始构建
       run: |
         cwd=`pwd`
@@ -95,16 +95,16 @@ jobs:
         fi
         # 4. 清理构建
         sed -i "s/^CONFIG_TOOLCHAIN_DIR=.*$/CONFIG_TOOLCHAIN_DIR=${CONFIG_TOOLCHAIN_DIR}/g" .config
-        sudo cp -f .config  ${WORK_PATH}/images/
+        sudo cp -f .config ${WORK_PATH}/images/
         sudo ./clear_tree_simple
         sudo fakeroot ./build_firmware_modify $t_item        # $t_item  是循环的子对象
-        sudo mv -f images/*.trx  ${WORK_PATH}/images/
-     done
-        echo "FILE_NAME=$T_NAMES-$(date "+%Y%m%d")"  # 包名
-        echo "IMAGES_PATH=${WORK_PATH}/images/"      # 打包目录
+        sudo mv -f images/*.trx ${WORK_PATH}/images/
+        done
+        echo "env.FILE_NAME=$T_NAMES-$(date "+%Y%m%d")"  # 包名
+        echo "env.IMAGES_PATH=${WORK_PATH}/images/"      # 打包目录
     - name : Upload Packages           # 6. 打包文件并且上传到当前主分支
       uses: actions/upload-artifact@master
       if: env.UPLOAD_FIRMWARE == 'true' && success()   # 成功才执行
       with:
-        name: Padavan-${{FILE_NAME}}
-        path: ${{ IMAGES_PATH }}
+        name: Padavan-${{env.FILE_NAME}}
+        path: ${{ env.IMAGES_PATH }}
